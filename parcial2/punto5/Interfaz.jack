@@ -1,0 +1,157 @@
+/*Clase que maneja el calculo de festivos y el dibujo de todo lo que aparecera en pantalla*/
+class Interfaz{
+    field Date drawnDate;    //Fecha que se esta dibujando
+    field Holidays festivos;  //Festivos del año correspondientes
+
+    constructor Interfaz new(Date d){
+        //Limpio la pantalla
+        do Interfaz.clearScreen();
+        //Dibujo la tabla
+        do drawGrid();
+        let drawnDate= d;
+        //Creo los arreglos de festivos
+        let festivos=Holidays.new(d.getYear());
+        //Calculo domingo de pascua
+        do festivos.setGauss(d.getYear());   
+        //Lleno los arreglos con los festivos
+        do festivos.poblarGD();
+        do festivos.poblarFF();
+        do festivos.poblarFM();
+        //Traslado los festivos que se tengas que trasladar
+        do festivos.moverGauss();
+        do festivos.moverMovibles();
+        return this;
+    }
+    
+    /*Metodo que dibuja la tabla base sobre la cual se pondran los dias y festivos*/
+    method void drawGrid(){
+       var int i,j,k;
+       var int acumr,acumc;
+       var int cursorPosition;
+       var List current;
+
+       //Lineas horizontales
+       let i =0;
+       let acumr =10;
+       do Screen.drawLine(10,10,502,10);   
+       do Screen.drawLine(10,30,502,30);  
+       while(i<7){
+         let acumr =30+(32*i);  
+         do Screen.drawLine(10,acumr,502,acumr);     
+         let i =i+1;      
+       }
+       
+       //Lineas verticales
+       let j =0;
+       let acumc =10;
+        while(j<8){
+         let acumc =10+(70*j);  
+         do Screen.drawLine(acumc,10,acumc,222);     
+         let j =j+1;      
+       }
+
+       //Dias
+        let current = List.new("D",List.new("L",List.new("M",List.new("W",List.new("J",List.new("V",List.new("S",null)))))));
+        let cursorPosition=5;
+        while (~(current = null)) {
+            do Output.moveCursor(1,cursorPosition);
+            do Output.printString(current.getData());
+            let current = current.getNext();
+            let cursorPosition=cursorPosition+9;
+        }
+        //Mensaje del final que pide una accion
+        do Output.moveCursor(21,3);
+        do Output.printString("Oprima una tecla direccional para cambiar el mes visto,");
+        do Output.moveCursor(22,10);
+        do Output.printString(" O para una fecha nueva y T para finalizar");
+        do Output.moveCursor(0,0);
+        return;
+    }
+
+   /*Metodo que llena la tabla con los dias correspondientes y sus festivos*/
+    method void fillGrid(){
+        var Month currentMonth;
+        var Year currentYear;
+        var Array fest;
+        var String nom;
+        var Holiday obj;
+        var int i,row,colum,ds,week,aux,auxr;
+        var Day temp,temp2;
+        var Date tempd;
+        //Obtengo mes y años actuales
+        let currentMonth=drawnDate.getMonth();
+        let currentYear=drawnDate.getYear();
+        //Obtengo festivos pertenecientes al mes
+        let fest = festivos.findHolidays(currentMonth);
+        let i =1;
+        let week=0;
+        //Creo un dia con esa fecha
+        let temp = Day.new(i,currentMonth,currentYear);
+        //Obtengo el dia de la semana del primer dia
+        let ds = temp.getWeekDayA(); 
+        while(i<(currentMonth.getNumDays()+1)){  
+            //Como empezamos con domingo, el 8 ya va a ser 1                     
+            if(ds=8){let ds =1;}
+            //Calculo columna con dia de la semana
+            let colum =(8*ds);
+            //Ajusto para que quede lindo
+            if(ds<4){let colum=colum-2;}
+            if(ds>3){let colum=colum;} 
+            //Calculo fila segun la semana
+            let row = 3+(3*week);
+            //Si ya es sabado, seguire en la siguientes columna
+            if(ds=7){let week=week+1;}
+            //Imprimo el numero del dia
+            do Output.moveCursor(row,colum);
+            do Output.printInt(i); 
+            
+            //Miro si hay un festivo en esa fecha
+            let aux =0;
+            let auxr=row;
+            let obj = fest[aux];
+            //Voy hasta qque ya no hayan más festivos
+            while(~(obj=null)){
+                //Obtengo fecha y dia
+                let tempd = obj.getDate();
+                let temp = tempd.getDay();
+                //Si coinciden
+                if(temp.getVal()=i){
+                    //Obtengo el nombre
+                   let nom = obj.getName(); 
+                   //Y lo imprimo organizando el cursor para que quede medio centrado
+                   if(colum>35){
+                      do Output.moveCursor(auxr+1,colum-2);
+                    }else{
+                      do Output.moveCursor(auxr+1,colum-3);
+                    }
+                  do Output.printString(nom);
+                  //Si hay otro festivo se debe iimprimir en la linea que sigue
+                  let auxr = auxr+1;
+                }
+                //Siguiente
+                let aux =aux+1;
+                let obj = fest[aux];
+            }
+            //Sumo uno al dia y uno al dia de la semana
+            let i =i+1; 
+            let ds=ds+1;         
+        }
+        return ;
+    }
+ 
+    /*Metodo que pone toda la pantalla blanca dibujando un rectangulo gigante*/
+    function void clearScreen(){
+       do Screen.setColor(false);
+       do Screen.drawRectangle(0,0,511,255);
+       do Screen.setColor(true);
+       return;
+    }
+
+    method void dispose() {
+        do drawnDate.dispose();
+        do festivos.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}

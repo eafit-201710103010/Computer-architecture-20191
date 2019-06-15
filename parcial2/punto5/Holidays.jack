@@ -1,0 +1,247 @@
+/*Clase que funciona como una coleccion de festivos y los agrupa en 3 grupos : fijos, movibles y dependientes del domingo de pascua*/
+class Holidays{
+    field Array festivosMovibles;  //Festivos que se mueven al siguiente lunes
+    field Array festivosFijos;     //Festivos que no cambian
+    field Array gaussDependant;    //Festivos que se calculan con la semana santa
+    field Date domingoPascua;      //Domingo de pascua, base para calculo
+    field Year year;               //Año para el que se estan calculando los festivos
+
+
+    constructor Holidays new(Year y){
+        let year=y;
+        let festivosMovibles = Array.new(7);
+        let festivosFijos=Array.new(9);
+        let gaussDependant=Array.new(7);       
+        return this;
+    }
+
+    method Date getDomingo(){return domingoPascua;}
+    
+    /*Metodo que segun el año determina valores de M y N para ejecutar el algoritmo de Gauss*/
+    method void setGauss(Year year){
+        var int y,M,N;
+        let y = year.getVal();
+        if(y<1700){
+           let M = 22;
+           let N =2;
+        }
+        if((y>1699)&(y<1800)){
+           let M = 23;
+           let N =3;
+        }
+        if((y>1799)&(y<1900)){
+           let M = 23;
+           let N =4;
+        }
+        if((y>1899)&(y<2100)){
+           let M = 24;
+           let N =5;
+        }
+        if((y>2099)&(y<2200)){
+           let M = 24;
+           let N =6;
+        }
+        if((y>2199)&(y<2300)){
+           let M = 25;
+           let N =0;
+        }
+        let domingoPascua=gaussAlgorithm(y,M,N);
+        return;
+    }
+
+    /*Implementacion del algoritmo de Gauss, los valores de M y N son dados por SetGauss*/
+    method Date gaussAlgorithm(int y,int M,int N){
+        var  int a,b,c,d,e,auxd,auxe,opM,opA,cond;
+        var Date res;
+        let a = Main.module(y,19);
+        let b = Main.module(y,4);
+        let c = Main.module(y,7);
+        let auxd=Math.multiply(19,a)+M;
+        let d = Main.module(auxd,30);
+        let auxe = Math.multiply(2,b)+Math.multiply(4,c)+Math.multiply(6,d)+N;
+        let e = Main.module(auxe,7);
+        let opM=22+d+e;
+        let opA=d+e-9;
+        let cond=d+e;
+        if(cond<10){
+            let res = Date.new(opM,3,y);
+        }else{
+            let res = Date.new(opA,4,y);
+        }
+        return res;
+    }
+
+   
+   /*Metodo que llena el arreglo de festivos depedientes de Gaus, moviendo esta fecha determinados dias o semanas*/
+    method void poblarGD(){
+        //Festivos indicados por el enunciado
+        let gaussDependant[0]=Holiday.new("Ascencion",domingoPascua.moveWeeks(6));
+        let gaussDependant[1]=Holiday.new("C.Christi",domingoPascua.moveWeeks(9));
+        let gaussDependant[2]=Holiday.new("S.Corazon",domingoPascua.moveWeeks(10));
+        let gaussDependant[3]=Holiday.new("J.Santo",domingoPascua.moveBackDays(3));
+        let gaussDependant[4]=Holiday.new("V.Santo",domingoPascua.moveBackDays(2));
+        //Festivos agregados porque aparecen en la mayoria de calendarios
+        let gaussDependant[5]=Holiday.new("Pascua",domingoPascua);
+        let gaussDependant[6]=Holiday.new("D.Ramos",domingoPascua.moveBackDays(7));
+        return;
+    }
+    
+    /*Metodo que llena el arreglo de Festivos fijos con sus respectivas fechas*/
+    method void poblarFF(){
+        //Festivos indicados por el enunciado
+        let festivosFijos[0]= Holiday.new("A.Nuevo",Date.new(1,1,year.getVal()));
+        let festivosFijos[1]= Holiday.new("D.trabajo",Date.new(1,5,year.getVal()));
+        let festivosFijos[2]= Holiday.new("Indep.",Date.new(20,7,year.getVal()));
+        let festivosFijos[3]= Holiday.new("B.Boyaca",Date.new(7,8,year.getVal()));
+        let festivosFijos[4]= Holiday.new("Inma.Con.",Date.new(8,12,year.getVal()));
+        let festivosFijos[5]= Holiday.new("Navidad",Date.new(25,12,year.getVal()));
+        //Festivos agregados porque son muy muy importantes
+        let festivosFijos[6]= Holiday.new("Cum. JL",Date.new(3,11,year.getVal()));
+        let festivosFijos[7]= Holiday.new("Cum. LM",Date.new(28,12,year.getVal()));
+        let festivosFijos[8]= Holiday.new("Accion Gracias",Date.new(30,11,year.getVal()));
+        return;       
+    }
+
+   /*Metodo que llena el arreglo de festivos fijos con una fecha provisional*/
+    method void poblarFM(){
+        let festivosMovibles[0]= Holiday.new("Reyes",Date.new(6,1,year.getVal()));
+        let festivosMovibles[1]= Holiday.new("San Jose",Date.new(19,3,year.getVal()));
+        let festivosMovibles[2]= Holiday.new("S.P y S.P",Date.new(29,6,year.getVal()));
+        let festivosMovibles[3]= Holiday.new("Asuncion",Date.new(15,8,year.getVal()));
+        let festivosMovibles[4]= Holiday.new("D.Raza",Date.new(12,10,year.getVal()));
+        let festivosMovibles[5]= Holiday.new("Indep.Car",Date.new(11,11,year.getVal()));
+        let festivosMovibles[6]= Holiday.new("D.Santos",Date.new(1,11,year.getVal()));
+        return;       
+    }
+
+    /*Metodo que llama al metodo que mueve a proximo lunes los festivos movibles*/
+    method void moverMovibles(){
+        var int i;
+        var Holiday temp;
+        let i = 0;
+        while (i < 7) {
+         let temp= festivosMovibles[i];
+         do temp.moveToMonday();
+         let i = i + 1;
+      }
+      let temp=festivosFijos[8];
+      do temp.moveToThursday();      
+      return;
+    }
+ 
+    /*Metodo que llama al metodo que mueve a proximo lunes los festivos dependientes de Gauss*/
+    method void moverGauss(){
+        var int i;
+        var Holiday temp;
+        var String n;
+        let i = 0;
+        while (i < 3) {
+         let temp= gaussDependant[i];
+         do temp.moveToMonday();
+         let i = i + 1;
+        }  
+               
+      return;
+    }
+ 
+    /*Metodo que dado un ems especifico retorna un arreglo con los festivos pertenecientes al mes*/
+    method Array findHolidays(Month m){
+        var int i,j,k,v1,c;
+        var Holiday temp;
+        var Date tempd;
+        var Array res;
+        var Month maux;
+        //Creo en arreglo con el maximo de dias del mes
+        let res = Array.new(m.getNumDays());
+        let i =0;
+        let c =0;
+        //Busco en los festivos dependienets de gauss
+        while (i < 7) {
+            let temp=gaussDependant[i];
+            let tempd=temp.getDate();
+            let maux = tempd.getMonth();
+            let v1 = maux.getVal();
+            if(v1=m.getVal()){
+                let res[c]=temp;
+                let c =c+1;
+            }
+            let i =i+1;
+        }
+        let j =0;
+        //Busco en los festivos Movibles
+        while (j < 7) {
+            let temp=festivosMovibles[j];
+            let tempd=temp.getDate();
+            let maux = tempd.getMonth();
+            let v1 = maux.getVal();
+            if(v1=m.getVal()){
+                let res[c]=temp;
+                let c =c+1;
+            } 
+            let j =j+1;         
+        }
+        let k =0;
+        //Busco en los festivos fijos
+        while (k < 9) {
+            let temp=festivosFijos[k];
+            let tempd=temp.getDate();
+            let maux = tempd.getMonth();
+            let v1 = maux.getVal();
+            if(v1=m.getVal()){
+                let res[c]=temp;
+                let c =c+1;
+            }
+            let k =k+1;           
+        }
+        return res;
+
+    }
+
+   /*Metodo auxiliar usado para verificar que los calculos de gauss fueran correctos*/
+    method void printGauss(){
+        var int i;
+        var Holiday temp;
+        let i = 0;
+        while (i < 5) {
+         let temp= gaussDependant[i];
+         do temp.print();
+         let i = i + 1;
+      }      
+      return;
+    }
+
+   /*Metodo que se desahce de todo lo que contiene la clase, yendo por cada elemento de los Array y destruyendo todo al final*/
+    method void dispose(){
+        var int i,j,k;
+        var Holiday temp;
+        let i =0;
+        while (i < 7) {
+            let temp=gaussDependant[i];
+            do temp.dispose();
+            let i =i+1;
+        }
+        let j =0;
+        while (j < 7) {
+            let temp=festivosMovibles[j];
+            do temp.dispose();
+            let j =j+1;         
+        }
+        let k =0;
+        while (k < 8) {
+            let temp=festivosFijos[k];
+            do temp.dispose();
+            let k =k+1;           
+        }
+        do festivosMovibles.dispose();
+        do festivosFijos.dispose();
+        do gaussDependant.dispose();        
+        do domingoPascua.dispose();
+        do year.dispose();
+        do Memory.deAlloc(this);
+        return;
+
+    }
+    
+
+
+}

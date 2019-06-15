@@ -1,0 +1,141 @@
+class Main{
+    //Fecha actual
+    static int year,month,day;
+    //Accion a realizar
+    static int action;
+
+    function void main(){
+        var Interfaz screen;
+        var Date date;
+        //Obtengo fecha inicial
+        do Main.getData();
+        //Valido que la sporte el programa
+        let date = Main.validateInput();
+        //Creo una nueva tabla y calculo todos los festivos
+        let screen = Interfaz.new(date);
+        //La lleno segun le fecha
+        do screen.fillGrid();
+        //Espero a que el usuario haga algo
+        do Main.waitForAction();
+        while(action<6){
+            //Limpio lo quue haya pintado
+            do Interfaz.clearScreen();
+            //Dibujo la tablita
+            do screen.drawGrid();
+
+            if(action=1){
+                //Pido datos nuevos
+                do Interfaz.clearScreen();
+                do Main.getData();
+            }
+            if(action=2){
+                //Si es diciembre, el mes que sigues el enero del siguiente año
+                if(month=12){
+                    let month=1;
+                    let year =year+1;
+                }else{
+                    let month=month+1; 
+                }
+                
+            }
+            if(action=3){
+                //Si es enero, el mes anterior es diciembre del año anterior
+                if(month=1){
+                    let month=12;
+                    let year =year-1;
+                }else{
+                    let month=month-1; 
+                }
+                
+            }
+            if(action=4){
+                //Año que sigue
+                let year =year+1;             
+            }
+            if(action=5){
+                //Año anterior
+                let year =year-1;               
+            }
+            //Como ya dibuje me deshago de la fecha vieja y los festivos viejos
+            do date.dispose();
+            do screen.dispose();
+            //Valido que lo  nuevo sea valido
+            let date = Main.validateInput();
+            //Dibujo la tabla, calculo festivos
+            let screen = Interfaz.new(date);
+            //Leno la tabla 
+            do screen.fillGrid();
+            //Espero que el usuario haga algo
+            do Main.waitForAction();
+        }
+        //Si ya quiere acabar, borro todo en pantalla
+        do Interfaz.clearScreen();
+        //Pongo el cursor en la mitad
+        do Output.moveCursor(10,10);
+        //Un mensaje amigable
+        do Output.printString("El programa va a cerrar, feliz dia. :)");
+        //Y muero
+        do Sys.halt();        
+        return;
+    }
+
+    /* Funcion auxilar que saca el modulo  */
+    function int module(int dividendo, int divisor){
+        var int res;
+        let res = dividendo - ((Math.divide(dividendo, divisor)) * divisor);
+        return res;
+    }
+
+    /*Recibe información y la guarda en las variables globales*/
+    function void getData(){
+        let year= Keyboard.readInt("Ingrese un ano:");
+        let month= Keyboard.readInt("Ingrese un mes:");
+        let day= Keyboard.readInt("Ingrese un dia:");
+        return ;
+    }
+    
+    /*Usa los metodos internos de validar para verificar que toto sea valido y retorna 
+    una fecha con los 3 elementos(dia,mes y año), sino, saca error y muere*/
+    function Date validateInput(){
+        var Year y;
+        var Day d;
+        var Month m;
+        var Date date;
+        let y = Year.new(year);
+        let m = Month.new(month,y);
+        let d = Day.new(day,m,y); 
+        let date= Date.newO(d,m,y);          
+        if(~((y.getValid()& m.getValid()) & (d.getValid()))){
+           do Output.println(); 
+           do Interfaz.clearScreen();
+           do Output.printString("Ya que la fecha no es valida el programa va a cerrar :)");
+           do Sys.halt();
+        }
+        return date;
+    }
+
+   /*Espera a que el usuario haga algo y aloja la acción en una variable global*/
+    function void waitForAction(){
+        var int key;       
+        let key= Keyboard.keyPressed(); 
+        while(key=0){
+           let key= Keyboard.keyPressed(); 
+        }
+    
+        //Arriba 
+        if(key=131){let action=5;}
+        //Abajo
+        if(key=133){let action=4;}
+        //Izquierda
+        if(key=130){let action=3;}
+        //Derecha
+        if(key=132){ let action=2;}
+        //O
+        if(key=111 | key=79){ let action=1;}
+        //T
+        if(key=106 |key=84){ let action=7;}
+       
+       return;
+    }
+    
+}

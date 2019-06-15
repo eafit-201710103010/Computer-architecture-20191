@@ -1,0 +1,29 @@
+class Main{
+    function void main(){
+        var int currNum,cont,sum,prom,cant,i,aux;
+        var Array arr;
+        let cont=0;
+        let sum =0;
+        let cant=Keyboard.readInt("Cantidad de numeros a ingresar:");
+        let arr = Array.new(cant);
+        let i =0;
+        while(i<cant){
+        let currNum=Keyboard.readInt("Ingrese un numero:");
+        let arr[i] = currNum;
+        let cont = cont+1;
+        let sum=sum+currNum;  
+        let i=i+1;     
+        }
+        let prom = Math.divide(sum,cont);
+        let i=0;
+        while(i<cant){
+          do Output.printInt(arr[i]);
+          do Output.printString(" ");
+          let aux = arr[i]-prom;
+          do Output.printInt(aux);
+          do Output.println();
+          let i =i+1;
+        }
+        return;
+    }
+}

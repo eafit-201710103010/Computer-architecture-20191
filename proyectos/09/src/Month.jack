@@ -1,0 +1,48 @@
+/*Método que representa un mes, con su valor, el numero de dias que posee,y si es valido o no*/
+class Month{
+    field int val;     //Numero del mes
+    field int numDays; //Numero de dias
+    field boolean valid;  //Dentro del rango
+
+    constructor Month new(int v,Year y){
+      let val =v;
+      let valid = isValid(v);  
+      let numDays = getDays(y);
+      return this;     
+    }
+
+    //Metodos de acceso
+    method int getNumDays(){ return numDays;}
+    method boolean getValid(){return valid;}
+    method int getVal(){return val;}
+
+   /* Dependiendo del año determina dias del mes*/
+    method int getDays(Year year){
+        if((val=1)|(val=3)|(val=5)|(val=7)|(val=8)|(val=10)|(val=12)){
+            return 31;
+        }
+        if((val=4)|(val=6)|(val=9)|(val=11)){
+            return 30;
+        }
+        if((val=2) & (year.getBis())){
+            return 29;
+        }
+        return 28;
+    }
+
+   //Metodo para imprimir
+    method void print(){do Output.printInt(val);return;}
+
+   /*Metodo que determina que el mes si sea valido*/
+    method boolean isValid(int v){
+        if((val>0) & (val<13)){
+            return true;       
+        }
+        return false;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

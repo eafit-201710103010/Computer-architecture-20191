@@ -1,0 +1,149 @@
+/*Metodo que representa un fehca especifica y puede realizar transformaciones sobre ella*/
+class Date{
+   field Day day;      //Dia
+   field Month month;  //Mes
+   field Year year;    //Año
+
+   //Constructor para enteros que crea los objetos
+   constructor Date new(int dia, int mes, int ano){
+       let year =Year.new(ano);
+       let month = Month.new(mes,year);
+       let day = Day.new(dia,month,year);
+       return this;
+   }
+ 
+  //Constructor que recibe los objetos ya hechos
+   constructor Date newO(Day d,Month m , Year y){
+       let year = y;
+       let month=m;
+       let day=d;
+       return this;
+   }
+
+  //Constructor de copia
+   constructor Date newC(Date copia){
+       let year = copia.getYear();
+       let month = copia.getMonth();
+       let day = copia.getDay();            
+       return this;
+   }
+ 
+   //Metodos de acceso
+   method Day getDay(){return day;}
+   method Month getMonth(){return month;}
+   method Year getYear(){return year;}
+   method void setMonth(Month m){ let month=m; return;}
+   method void setYear(Year y){ let year=y;return;}
+
+    /* Metodo que mueve la fecha los dias del parametro y retorna un nuevo objeto con la fecha movida*/
+    method Date moveDays(int mov){
+       var Year y2;
+       var Month m2;
+       var Day d2; 
+       var Date res;
+       var int dif;
+       //Miro si los dias que se mueve pasa a otro mes o no
+       let dif = month.getNumDays() -  day.getVal(); 
+       //Si se queda en el mismo mes, facil, sumo los dias al dia
+       if(dif>mov){       
+        let y2 = Year.new(year.getVal());
+        let m2 = Month.new(month.getVal(),y2);
+        let d2= Day.new(day.getVal()+mov,m2,y2);
+       }else{
+           //Sino, miro si es diciembre, si lo es el mes sera 12 y el año un año más
+           //El dia sera los dias que tenia que mover menos los que ya movi al  cambiar de mes
+           if(month.getVal()=12){
+              let mov = mov -dif ;
+              let y2 = Year.new(year.getVal()+1);
+              let m2 = Month.new(1,y2);
+              let d2 = Day.new(mov,m2,y2);
+           }else{
+              //Si es un mes normal, le sumo 1 al mes
+              let mov = mov -dif ;            
+              let y2 = Year.new(year.getVal());
+              let m2 = Month.new(month.getVal()+1,y2);
+              let d2 = Day.new(mov,m2,y2);
+           }
+      }
+      let res = Date.newO(d2,m2,y2);
+      return res;
+    }
+
+    /*Metodo que funciona parecido a moveDays, solo que en reversa*/
+    method Date moveBackDays(int mov){
+       var Year y2;
+       var Month m2;
+       var Day d2; 
+       var Date res;
+       var int dif;
+       //Miro si debo irme un mes  atras
+       let dif = day.getVal()-mov; 
+       if(dif>0){       
+           //Si no, solo le resto el valor al dia
+        let y2 = Year.new(year.getVal());
+        let m2 = Month.new(month.getVal(),y2);
+        let d2= Day.new(day.getVal()-mov,m2,y2);
+       }else{
+           //Si no alcanza miro si es enero
+           if(month.getVal()=1){
+             //El dia sera los dias de enero menos los que me falta por mover
+              let mov = 31 +dif ;
+              //Resto 1 al año porque era enero y ahora es diciembre
+              let y2 = Year.new(year.getVal()-1);
+              let m2 = Month.new(12,y2);
+              let d2 = Day.new(mov,m2,y2);
+           }else{
+               //Si no es enero le resto 1 al mes
+              let y2 = Year.new(year.getVal());
+              let m2 = Month.new(month.getVal()-1,y2);
+              //Obtengo el numero de dias del mes anterior y le resto los que em faltan por mover
+              let mov = m2.getNumDays() +dif ;
+              let d2 = Day.new(mov,m2,y2);
+           }
+      }
+      let res = Date.newO(d2,m2,y2);
+      return res;
+    }
+    
+    /*Metodo que usa moveDays para mover semanas enteras*/
+    method Date moveWeeks(int weeks){       
+        var Date res;
+        //Creo fecha de copia que sera el resultado
+        let res = Date.newC(this);
+        //Llamo al metodo recursivo
+        let res = moveWeeksRecursive(res,weeks);
+        return res;
+    }
+ 
+ /*Metodo recursivo que va restandole semanas a la fecha original*/
+    method Date moveWeeksRecursive(Date date,int weeks){
+        var Date aux;        
+        if(weeks=0){
+            return date;
+        }else{
+            let aux = date.moveWeeksRecursive(date,weeks-1);
+            return aux.moveDays(7);
+        }
+    }
+
+  /*Metodo auxiliar para imprimir el contenido de la fecha*/
+   method void print(){
+       do day.print();
+       do Output.printString("-");
+       do month.print();
+       do Output.printString("-");
+       do year.print();
+       
+       return;     
+   }
+
+   method void dispose() {
+        do day.dispose();
+        do month.dispose();
+        do year.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+   
+
+}

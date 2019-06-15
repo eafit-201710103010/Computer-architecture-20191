@@ -1,0 +1,51 @@
+/* Clase que representa un año, con sus propiedades de si es bisiesto y es parte del rango que soporta el calendario*/
+class Year{
+    field int val;    //Numero del año
+    field boolean bis;  //Si es bisiesto o no
+    field boolean valid;  //Esta dentro del rango
+
+    constructor Year new(int v){       
+      let val=v;   
+      let valid = checkRange(v); 
+      let bis = isBis(v); 
+      return this;
+    }
+
+    //Metodos de acceso
+    method boolean getBis(){return bis;}
+    method boolean getValid(){return valid;}
+    method int getVal(){return val;}
+    method void setVal(int n){let val=n; return;}
+
+
+    /*Asegura que el año esté dentro del rango especificado*/
+    method boolean checkRange(int v){       
+        if((v>1582 )&(v<2300)){
+            return true;
+        }
+        return false;        
+    }
+
+    /*Metodo para imprimir el valor*/
+    method void print(){do Output.printInt(val);return;}
+
+    /*Metodo que determina si es bisiesto*/
+    method boolean isBis(int v){
+        var int mod4,mod100,mod400;
+        //Hallo el modulo con 4,100 y 400
+        let mod4 = Main.module(v,4);
+        let mod100 = Main.module(v,100);
+        let mod400 = Main.module(v,400);
+        //Es bisiesto si es divisible por 4 pero no por 100, o por 4,100 y 400
+        if(((mod4=0) & ~(mod100=0)) | ((mod4=0) & (mod100=0) & (mod400=0) ) ){
+            return true;
+        }else{
+            return false;
+        }
+    }
+  
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+}

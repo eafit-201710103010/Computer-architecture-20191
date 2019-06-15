@@ -1,0 +1,36 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/Mux8Way16.hdl
+
+/**
+ * 8-way 16-bit multiplexor:
+ * out = a if sel == 000
+ *       b if sel == 001
+ *       etc.
+ *       h if sel == 111
+ *
+ * Implementado de manera similar al de 4 entradas
+ * reduciendo simultáneamente las entradas según 
+ * diferentes bits del selector hasta llegar
+ * a solo 1 conjunto de 16 bits 
+ *
+ */
+
+CHIP Mux8Way16 {
+    IN a[16], b[16], c[16], d[16],
+       e[16], f[16], g[16], h[16],
+       sel[3];
+    OUT out[16];
+
+    PARTS:
+    Mux16(a=a,b=b,sel=sel[0],out=b01);
+    Mux16(a=c,b=d,sel=sel[0],out=b02);
+    Mux16(a=e,b=f,sel=sel[0],out=b03);
+    Mux16(a=g,b=h,sel=sel[0],out=b04);
+    Mux16(a=b01,b=b02,sel=sel[1],out=b11);
+    Mux16(a=b03,b=b04,sel=sel[1],out=b12);
+    Mux16(a=b11,b=b12,sel=sel[2],out=out);
+
+
+}

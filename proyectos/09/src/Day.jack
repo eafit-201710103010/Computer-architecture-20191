@@ -1,0 +1,66 @@
+/*Metodo que representa un dia en especifico, si es valido o no y que dia de la semana es*/
+class Day{
+    field int val;      //Numero del dia
+    field int weekDay;  //Dia de la semana, se cambio para que 2 sea lunea y domingo 8
+    field boolean valid; //Dentro del rango del ems
+    
+    constructor Day new(int val1,Month month,Year year) {
+        let val=val1;
+        let valid = isValid(val1,month);
+        let weekDay=getWeekDay(val1,month,year);
+        return this;       
+    }
+
+   //Metodos de acceso
+    method int getVal(){return val;}
+    method boolean getValid(){return valid;}
+    method int getWeekDayA(){return weekDay;}
+    method void print(){do Output.printInt(val);return;}
+
+   /*Metodo que haya el dia de la semana segun la fecha usando congruencia de Zeller*/
+    method int getWeekDay(int v,Month month,Year year){
+        var int mes, ano,res,A,B,C,D,E,F,aux,acum;
+        let mes = month.getVal();
+        let ano = year.getVal();
+        //En este calculo enero y febrero son 13 y 14 del año anterior
+       if((mes=1) | (mes=2)){
+           let mes=12+mes;
+           let ano =ano-1;
+       }
+       let A = v;
+       let aux=mes+1;
+       let B = Math.divide(Math.multiply(13,aux),5);
+       let C = ano;
+       let D = Math.divide(ano,4);
+       let E = Math.divide(ano,100);
+       let F = Math.divide(ano,400);
+       let acum = (A+B+C+D+F-E);
+       let res = Main.module(acum,7);
+       
+       //En la congruencia de zeller 0 es sabado y domingo es 1,, le sumo 7 para qu queden segun el sistema usado
+       if((res=0) | (res=1)){
+          let res = res+7;
+       }
+       let weekDay=res;
+       return res;      
+    }
+
+
+   /*Metodo que segun el ems determina que el dia se este en el rango deseado*/
+    method boolean isValid(int val1,Month month){
+        var int aux;
+        let aux = month.getNumDays();
+        let aux =aux+1;
+        if((val1>0) & (val1<aux)){
+            return true;
+        }
+        return false;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}    
+    

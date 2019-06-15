@@ -1,0 +1,9 @@
+Se podría usar como valores para DxA:
+a=1 c1=1 c1=0 c1=1 c1=0 c1=1 c1=0
+y para DxM:
+a=1 c1=1 c1=1 c1=1 c1=1 c1=1 c1=1
+ya que estas combinaciones no corresponden a ninguna operación previamente estipulada para la ALU,
+por tanto en la CPU se podria decodificar y prender en flag xo cuando estas intrucciones se cumplan,
+de lo contrario deberíamos agregar un bit de control lo cual cambiaria por completo la arquitectura del
+computador.
+dest y jump toman los valores de la tabla ya establecida ya que estos no afectan el trabajo interno de la ALU.

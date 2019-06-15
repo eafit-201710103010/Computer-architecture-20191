@@ -1,0 +1,1 @@
+No podría encriptarlos ya que 450200 no es representable en 16 bits, por los que el encriptamiento le quitaría los 2 bits más significativos restandole 262144, por lo que el encriptamiento se haria en base a 188056,generando confusiones en la decodificación del mensaje.

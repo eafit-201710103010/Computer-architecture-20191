@@ -1,0 +1,74 @@
+/*Metodo que representa un festivo con su nombre, fecha original y fecha movida segun año*/
+class Holiday{
+    field String nombre;  //Nombre del festivo
+    field Date orDate;    // Fecha original
+    field Date movDate;   //Fecha movida
+
+    constructor Holiday new(String n,Date d){
+        let nombre=n;
+        let orDate= Date.newC(d);
+        let movDate=Date.newC(d);
+        return this;
+    }
+
+    //Metodos de acceso
+    method Date getDate(){return movDate;}
+    method String getName(){return nombre;}
+    
+    /*Metodo que mueve el festivo al proximo lunes*/
+    method void moveToMonday(){
+        var Day dia;
+        var int dias,dif,mov;
+        let dia = orDate.getDay();
+        //Obtengo el dia de la semana
+        let dias=dia.getWeekDayA();  
+        // Como lunes es 2 y es el menor, resto 2     
+        let dif =dias-2;
+        if(~(dif=0)){    
+           //Hay que mover el dia la cantidad de dias que esten separados el dia actual y el prox lunes       
+           let mov = 7- dif;
+           let movDate= orDate.moveDays(mov);          
+        }else{
+            //Si ya cayó lunes la fecha movida es la original
+            let movDate = orDate;
+        }
+        return;
+    }
+
+    method void moveToThursday(){
+        var Day dia;
+        var int dias,dif,mov;
+        let dia = orDate.getDay();
+        //Obtengo el dia de la semana
+        let dias=dia.getWeekDayA();  
+        // Como lunes es 2 y es el menor, resto 2     
+        let dif =dias-5;
+        let movDate=orDate;
+        while(~(dif=0)){    
+           //Hay que mover el dia la cantidad de dias que esten separados el dia actual y el prox lunes       
+           let movDate= movDate.moveBackDays(1); 
+           let dia = movDate.getDay();  
+           let dias=dia.getWeekDayA();       
+           let dif =dias-5;       
+        }
+                  
+        return;
+    }
+
+   /*Metodo auxiliar que imprime los valores de los atributos*/
+    method void print(){
+        do Output.printString(nombre);
+        do Output.printString("  ");
+        do movDate.print();
+        do Output.println();
+        return;
+    }
+
+    method void dispose(){
+        do orDate.dispose();
+        do movDate.dispose();
+        do nombre.dispose();
+        do Memory.deAlloc(this);
+        return;
+    }
+}

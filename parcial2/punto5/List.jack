@@ -1,0 +1,49 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/09/List/List.jack
+
+//Clase "reciclada" de los ejemplos dados
+
+/** Represents a linked list of integers. */
+class List {
+    field int data;          // a list consists of a data field,
+    field List next;         // followed by a list
+
+    /* Creates a List. */
+    constructor List new(String car, List cdr) {
+        let data = car;       // the identifiers car and cdr are used in 
+        let next = cdr;       // memory of the Lisp programming language
+        return this;
+    }
+
+    /** Accessors. */
+    method int getData() { return data; }
+    method int getNext() { return next; }
+
+    /** Prints this list. */
+    method void print() {
+        var List current; 
+        var String h;   
+        let current = this;  
+        while (~(current = null)) {
+            let h = current.getData();
+            do Output.printString(h); 
+            let current = current.getNext();
+        }
+        return;
+    }   
+
+    /** Disposes this List by recursively disposing its tail. */
+    method void dispose() {
+        if (~(next = null)) {
+            do next.dispose();
+        }
+        // Uses an OS routine to recycle this object.
+        do Memory.deAlloc(this);
+        return;
+    }
+
+   
+
+}

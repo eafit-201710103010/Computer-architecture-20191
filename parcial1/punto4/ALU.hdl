@@ -1,0 +1,67 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/02/ALU.hdl
+
+/**
+ * The ALU (Arithmetic Logic Unit).
+ * Computes one of the following functions:
+ * x+y, x-y, y-x, 0, 1, -1, x, y, -x, -y, !x, !y,
+ * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs, 
+ * according to 6 input bits denoted zx,nx,zy,ny,f,no.
+ * In addition, the ALU computes two 1-bit outputs:
+ * if the ALU output == 0, zr is set to 1; otherwise zr is set to 0;
+ * if the ALU output < 0, ng is set to 1; otherwise ng is set to 0.
+ *
+ * Codigo documentado a medida de desarrolla
+ * Linea 60: Se selecciona la salida negada o la salida normal, al ser este el resultado definitivo
+ * se divide en 2 mitades para determinar si es igual a 0 con una compuerta Or8Way y se saca su bit
+ * más a la izquierda como ng, que determina si es resultado es positivo o negativo
+ */
+
+// Implementation: the ALU logic manipulates the x and y inputs
+// and operates on the resulting values, as follows:
+// if (zx == 1) set x = 0        // 16-bit constant
+// if (nx == 1) set x = !x       // bitwise not
+// if (zy == 1) set y = 0        // 16-bit constant
+// if (ny == 1) set y = !y       // bitwise not
+// if (f == 1)  set out = x + y  // integer 2's complement addition
+// if (f == 0)  set out = x & y  // bitwise and
+// if (no == 1) set out = !out   // bitwise not
+// if (out == 0) set zr = 1
+// if (out < 0) set ng = 1
+
+CHIP ALU {
+    IN  
+        x[16], y[16],  // 16-bit inputs        
+        zx, // zero the x input?
+        nx, // negate the x input?
+        zy, // zero the y input?
+        ny, // negate the y input?
+        f,  // compute out = x + y (if 1) or x & y (if 0)
+        no, // negate the out output?
+        xo;  //xor input
+    OUT 
+        out[16], // 16-bit output
+        zr, // 1 if (out == 0), 0 otherwise
+        ng; // 1 if (out < 0),  0 otherwise
+
+    PARTS:
+    Mux16(a=x,b=false,sel=zx,out=xpz);             // Si zx=1, devuelvo b que defino como 0
+    Not16(in=xpz,out=xneg);                        // Niego x en caso de necesitarla
+    Mux16(a=xpz,b=xneg,sel=nx,out=xpn);            // Selecciono xneg o x normal segun la entrada nx
+    Mux16(a=y,b=false,sel=zy,out=ypz);             // Si zy=1, devuelvo b que defino como 0   
+    Not16(in=ypz,out=yneg);                        // Niego y en caso de necesitarla
+    Mux16(a=ypz,b=yneg,sel=ny,out=ypn);            // Selecciono yneg o y normal segun la entrada ny
+    Add16(a=xpn,b=ypn,out=sum);                    // Hago la suma en caso de necesitarla
+    And16(a=xpn,b=ypn,out=and);                    // Hago el and en caso de necesitarlo
+    Mux16(a=and,b=sum,sel=f,out=xyf);              // Selecciono suma o and segun f
+    Not16(in=xyf,out=nxyf);                        // Niego la salida por si la necesito
+    Mux16(a=xyf,b=nxyf,sel=no,out=salpar); // Mirar encabezado
+    Xor16(a=x,b=y,out=sxor);
+    Mux16(a=salpar,b=sxor,sel=xo,out=out,out[0..7]= mitad1,out[8..15]= mitad2,out[15]=ng);
+    Or8Way(in=mitad1,out=val1);                    // Confirmo que todos los bits sean 0 con una Or entre ellos
+    Or8Way(in=mitad2,out=val2);                    // Confirmo que todos los bits sean 0 con una Or entre ellos
+    Or(a=val1,b=val2,out=zrh);                     // Miro si ambos resultados dieron 0 o 1
+    Not(in=zrh,out=zr);                            // Si dan 0, la salida es 0, es decir, 1 para zr 
+}

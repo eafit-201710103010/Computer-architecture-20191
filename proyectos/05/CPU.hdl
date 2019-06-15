@@ -1,0 +1,77 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/05/CPU.hdl
+
+/**
+ * The Hack CPU (Central Processing unit), consisting of an ALU,
+ * two registers named A and D, and a program counter named PC.
+ * The CPU is designed to fetch and execute instructions written in 
+ * the Hack machine language. In particular, functions as follows:
+ * Executes the inputted instruction according to the Hack machine 
+ * language specification. The D and A in the language specification
+ * refer to CPU-resident registers, while M refers to the external
+ * memory location addressed by A, i.e. to Memory[A]. The inM input 
+ * holds the value of this location. If the current instruction needs 
+ * to write a value to M, the value is placed in outM, the address 
+ * of the target location is placed in the addressM output, and the 
+ * writeM control bit is asserted. (When writeM==0, any value may 
+ * appear in outM). The outM and writeM outputs are combinational: 
+ * they are affected instantaneously by the execution of the current 
+ * instruction. The addressM and pc outputs are clocked: although they 
+ * are affected by the execution of the current instruction, they commit 
+ * to their new values only in the next time step. If reset==1 then the 
+ * CPU jumps to address 0 (i.e. pc is set to 0 in next time step) rather 
+ * than to the address resulting from executing the current instruction. 
+ */
+
+CHIP CPU {
+
+    IN  inM[16],         
+        instruction[16], 
+        reset;           
+
+    OUT outM[16],        
+        writeM,          
+        addressM[15],    
+        pc[15];          
+
+    PARTS:   
+    //Si es una instruccion C que pide en Comp leer A los bits 5 y 15 deben ser 1.
+    And(a=instruction[15], b=instruction[5], out=instCA);
+    //Si es una instrucción A el bit 15 debe ser 0, lo niego para comparar
+	Not(in=instruction[15], out=instAA);
+    //Si alguno de los 2 es 1, guardo en registro A
+	Or(a=instCA, b=instAA, out=loadA);
+    //Si es una instrucción C que pide en Comp guardar en D lo bits 15 y 4 deben ser 1	
+	Mux16(a=instruction, b=outALU, sel=instruction[15], out=inA);
+    //Guardo o leo el registro A según la salida de la anterior decisión
+	ARegister(in=inA,    load=loadA, out=outA, out[0..14]=addressM);
+    //Guardo o leo el registro según lo seleccionado anteriormente
+    And(a=instruction[15], b=instruction[4], out=loadD);
+    //Decido si debo guardar en A la entrada a la CPU o la salida de la ALU según tipo de instrucción
+	DRegister(in=outALU, load=loadD, out=outD);
+    //Selecciono cual va a ser la entrada B de la ALU, segun el bit 12 de la instrucción
+	Mux16(a=outA, b=inM, sel=instruction[12], out=aluB);
+    //Paso unos parametros determinados a la ALU según la instrucción
+	ALU(x=outD, y=aluB, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=outALU, zr=zr, ng=ng); 
+	//Miro si la salida de la ALU es negativa o zero
+    Or(a=zr, b=ng, out=menIgZero);
+    //Srgún lo anterior sabré si es positiva.
+	Not(in=menIgZero, out=pos);
+    //Si es positiva y el bit 0 de la instrucción es 1, se refiere a un JGT
+	And(a=pos, b=instruction[0], out=JGT);
+    //Si es zero y el bit 1 de la instrucción es 1, se refiere a un JEQ
+	And(a=zr, b=instruction[1], out=JEQ);
+    //Si es negativa y el bit 2 de la instrucción es 1, se refiere a un JLT
+	And(a=ng, b=instruction[2], out=JLT);
+    //Ya que no hay un Or4Way uso el Or8Way y pongo el resto en 0
+	Or8Way(in[0]=JGT, in[1]=JEQ, in[2]=JLT, in[3..7]=false, out=jump);
+    //Si hay algún JUMP y es una instrucción C, cambio el PC
+	And(a=instruction[15], b=jump, out=loadPC);
+    //Cambio el PC si hay un Jump, de lo contrario solo lo incremento
+	PC(in=outA, load=loadPC, inc=true, reset=reset, out[0..14]=pc);	
+    //Si se pide guardar el resultado, se da como salida para la memoria
+	And(a=instruction[3], b=instruction[15], out=writeM);
+    
+}
